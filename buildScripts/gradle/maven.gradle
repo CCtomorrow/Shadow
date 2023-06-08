@@ -463,7 +463,10 @@ publishing {
                 url "https://maven.pkg.github.com/" + "${System.env.GITHUB_REPOSITORY}".toLowerCase()
             }
         } else {
-            mavenLocal()
+            maven {
+                url(new File(project.rootProject.getRootDir().getAbsolutePath() + "/repo/"))
+            }
+            //mavenLocal()
         }
     }
 }
