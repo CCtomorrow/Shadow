@@ -21,15 +21,21 @@ package com.tencent.shadow.core.gradle
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.internal.api.ApkVariantOutputImpl
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.tencent.shadow.core.gradle.extensions.PackagePluginExtension
+import com.tencent.shadow.core.gradle.extensions.PluginInfoConfig
 import com.tencent.shadow.core.manifest_parser.generatePluginManifest
 import com.tencent.shadow.core.transform.ShadowTransform
 import com.tencent.shadow.core.transform_kit.AndroidClassPoolBuilder
 import com.tencent.shadow.core.transform_kit.ClassPoolBuilder
 import org.gradle.api.*
 import org.gradle.api.tasks.compile.JavaCompile
+import org.json.simple.JSONArray
+import org.json.simple.JSONObject
+import java.io.BufferedWriter
 import java.io.File
+import java.io.FileWriter
 import java.net.URLClassLoader
 import java.util.zip.ZipFile
 
@@ -71,9 +77,9 @@ class ShadowPlugin : Plugin<Project> {
 
             onEachPluginVariant(project) { pluginVariant ->
                 checkAaptPackageIdConfig(pluginVariant)
-
                 val appExtension: AppExtension =
                     project.extensions.getByType(AppExtension::class.java)
+                createPluginInfoTasks(project, shadowExtension, pluginVariant)
                 createGeneratePluginManifestTasks(project, appExtension, pluginVariant)
             }
         }
@@ -166,6 +172,67 @@ class ShadowPlugin : Plugin<Project> {
         checkPluginVariants(pluginVariants, appExtension, project.name)
 
         pluginVariants.forEach(actions)
+    }
+
+    /**
+     * 创建根据用户的配置生成插件信息的task
+     */
+    private fun createPluginInfoTasks(
+        project: Project, shadowExtension: ShadowExtension, pluginVariant: ApplicationVariant
+    ) {
+        val extension = shadowExtension.pluginInfo
+        if (extension.partKey.isNotBlank()) {
+            //System.err.println("${project.name} pluginInfo===>$extension")
+            pluginVariant.outputs?.all { output ->
+                //因为前面已经过滤过了，所有这里基本一定是ApkVariantOutputImpl
+                if (output is ApkVariantOutputImpl) {
+                    //NormalDebug
+                    val full = pluginVariant.name.capitalize()
+                    //Normal
+                    val favor = pluginVariant.flavorName.capitalize()
+                    //Debug
+                    val type = pluginVariant.buildType.name.capitalize()
+                    //System.err.println("name=$full output=${output.outputFile.absolutePath}")
+                    //assembleNormalDebug
+                    val assembleTask = project.tasks.getByName("assemble$full")
+                    assembleTask.doFirst { task ->
+                        //直接在doFirst里面操作即可
+                        //System.err.println("${task.name} doFirst")
+                        //{
+                        //    "partKey": "",
+                        //    "version": 100,
+                        //    "dependsOn": ["",""],
+                        //    "hostWhiteList": ["",""]
+                        //}
+                        //写入outputs的config.json
+                        val config = JSONObject()
+                        config["partKey"] = extension.partKey
+                        config["version"] = extension.version
+                        if (extension.dependsOn.isNotEmpty()) {
+                            val dependsOnJson = JSONArray()
+                            for (k in extension.dependsOn) {
+                                dependsOnJson.add(k)
+                            }
+                            config["dependsOn"] = dependsOnJson
+                        }
+                        if (extension.hostWhiteList.isNotEmpty()) {
+                            val hostWhiteListJson = JSONArray()
+                            for (k in extension.hostWhiteList) {
+                                hostWhiteListJson.add(k)
+                            }
+                            config["hostWhiteList"] = hostWhiteListJson
+                        }
+                        val file = File(output.outputFile.parentFile, "config.json")
+                        //System.err.println("config json file=" + file.absolutePath)
+                        project.logger.info("config json file=" + file.absolutePath)
+                        val bizWriter = BufferedWriter(FileWriter(file))
+                        bizWriter.write(config.toJSONString())
+                        bizWriter.flush()
+                        bizWriter.close()
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -374,6 +441,11 @@ class ShadowPlugin : Plugin<Project> {
         var transformConfig = TransformConfig()
         fun transform(action: Action<in TransformConfig>) {
             action.execute(transformConfig)
+        }
+
+        var pluginInfo = PluginInfoConfig()
+        fun pluginInfo(action: Action<in PluginInfoConfig>) {
+            action.execute(pluginInfo)
         }
     }
 

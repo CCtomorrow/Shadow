@@ -105,6 +105,13 @@ shadow {
 //        useHostContext = ['abc']
     }
 
+    pluginInfo {
+        partKey = 'sample-plugin-app'
+        version = android.defaultConfig.versionCode
+        hostWhiteList = ["com.tencent.shadow.sample.host.lib"]
+        dependsOn = ['sample-base']
+    }
+
     packagePlugin {
         pluginTypes {
             debug {
