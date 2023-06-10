@@ -22,12 +22,13 @@ open class PluginInfoConfig {
     /**
      * 插件我们认为key是唯一的
      */
-    var partKey = ""
+    var pluginKey = ""
+    var apkName = ""
 
     /**
      * 插件的版本每次如果升级的话，表示是一个新插件
      */
-    var version = ""
+    var version = -1
     var dependsOn: Array<String> = emptyArray()
     var hostWhiteList: Array<String> = emptyArray()
 
@@ -35,7 +36,7 @@ open class PluginInfoConfig {
     }
 
     override fun toString(): String {
-        return "PluginInfoConfig(partKey='$partKey', version='$version', " +
+        return "PluginInfoConfig(pluginKey='$pluginKey', version='$version', " +
                 "dependsOn=${dependsOn.contentToString()}, hostWhiteList=${hostWhiteList.contentToString()})"
     }
 

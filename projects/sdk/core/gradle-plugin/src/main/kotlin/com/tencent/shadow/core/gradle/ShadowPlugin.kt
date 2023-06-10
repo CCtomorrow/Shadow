@@ -181,7 +181,7 @@ class ShadowPlugin : Plugin<Project> {
         project: Project, shadowExtension: ShadowExtension, pluginVariant: ApplicationVariant
     ) {
         val extension = shadowExtension.pluginInfo
-        if (extension.partKey.isNotBlank()) {
+        if (extension.pluginKey.isNotBlank()) {
             //System.err.println("${project.name} pluginInfo===>$extension")
             pluginVariant.outputs?.all { output ->
                 //因为前面已经过滤过了，所有这里基本一定是ApkVariantOutputImpl
@@ -200,13 +200,15 @@ class ShadowPlugin : Plugin<Project> {
                         //System.err.println("${task.name} doFirst")
                         //{
                         //    "partKey": "",
+                        //    "apkName": "",
                         //    "version": 100,
                         //    "dependsOn": ["",""],
                         //    "hostWhiteList": ["",""]
                         //}
                         //写入outputs的config.json
                         val config = JSONObject()
-                        config["partKey"] = extension.partKey
+                        config["pluginKey"] = extension.pluginKey
+                        config["apkName"] = output.outputFile.name
                         config["version"] = extension.version
                         if (extension.dependsOn.isNotEmpty()) {
                             val dependsOnJson = JSONArray()

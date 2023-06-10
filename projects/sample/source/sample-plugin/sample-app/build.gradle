@@ -106,7 +106,7 @@ shadow {
     }
 
     pluginInfo {
-        partKey = 'sample-plugin-app'
+        pluginKey = 'sample-plugin-app'
         version = android.defaultConfig.versionCode
         hostWhiteList = ["com.tencent.shadow.sample.host.lib"]
         dependsOn = ['sample-base']
