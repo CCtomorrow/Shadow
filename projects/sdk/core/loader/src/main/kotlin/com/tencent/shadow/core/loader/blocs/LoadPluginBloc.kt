@@ -85,7 +85,12 @@ object LoadPluginBloc {
             })
 
             val buildResources = executorService.submit(Callable {
-                CreateResourceBloc.create(installedApk.apkFilePath, hostAppContext)
+                CreateResourceBloc.create(
+                    installedApk.apkFilePath,
+                    hostAppContext,
+                    loadParameters,
+                    pluginPartsMap
+                )
             })
 
             val buildAppComponentFactory = executorService.submit(Callable {

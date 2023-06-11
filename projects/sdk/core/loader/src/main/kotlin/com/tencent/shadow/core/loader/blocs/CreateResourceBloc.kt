@@ -33,6 +33,8 @@ import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.webkit.WebView
+import com.tencent.shadow.core.load_parameters.LoadParameters
+import com.tencent.shadow.core.loader.infos.PluginParts
 import java.util.concurrent.CountDownLatch
 
 object CreateResourceBloc {
@@ -51,7 +53,15 @@ object CreateResourceBloc {
      */
     const val MAX_API_FOR_MIX_RESOURCES = Build.VERSION_CODES.O_MR1
 
-    fun create(archiveFilePath: String, hostAppContext: Context): Resources {
+    /**
+     * 现在插件不能
+     */
+    fun create(
+        archiveFilePath: String,
+        hostAppContext: Context,
+        loadParameters: LoadParameters,
+        pluginPartsMap: MutableMap<String, PluginParts>
+    ): Resources {
         triggerWebViewHookResources(hostAppContext)
 
         val packageManager = hostAppContext.packageManager
@@ -61,9 +71,21 @@ object CreateResourceBloc {
         applicationInfo.uid = hostApplicationInfo.uid
 
         if (Build.VERSION.SDK_INT > MAX_API_FOR_MIX_RESOURCES) {
-            fillApplicationInfoForNewerApi(applicationInfo, hostApplicationInfo, archiveFilePath)
+            fillApplicationInfoForNewerApi(
+                applicationInfo,
+                hostApplicationInfo,
+                archiveFilePath,
+                loadParameters,
+                pluginPartsMap
+            )
         } else {
-            fillApplicationInfoForLowerApi(applicationInfo, hostApplicationInfo, archiveFilePath)
+            fillApplicationInfoForLowerApi(
+                applicationInfo,
+                hostApplicationInfo,
+                archiveFilePath,
+                loadParameters,
+                pluginPartsMap
+            )
         }
 
         try {
@@ -105,7 +127,9 @@ object CreateResourceBloc {
     private fun fillApplicationInfoForNewerApi(
         applicationInfo: ApplicationInfo,
         hostApplicationInfo: ApplicationInfo,
-        pluginApkPath: String
+        pluginApkPath: String,
+        loadParameters: LoadParameters,
+        pluginPartsMap: MutableMap<String, PluginParts>
     ) {
         /**
          * 这里虽然sourceDir和sharedLibraryFiles中指定的apk都会进入Resources对象，
@@ -144,10 +168,16 @@ object CreateResourceBloc {
     private fun fillApplicationInfoForLowerApi(
         applicationInfo: ApplicationInfo,
         hostApplicationInfo: ApplicationInfo,
-        pluginApkPath: String
+        pluginApkPath: String,
+        loadParameters: LoadParameters,
+        pluginPartsMap: MutableMap<String, PluginParts>
     ) {
         applicationInfo.publicSourceDir = pluginApkPath
         applicationInfo.sourceDir = pluginApkPath
+        val dependsOn = loadParameters.dependsOn
+        if (dependsOn != null && dependsOn.isNotEmpty()) {
+            val path = arrayOf(String)
+        }
         applicationInfo.sharedLibraryFiles = hostApplicationInfo.sharedLibraryFiles
     }
 }
