@@ -197,10 +197,14 @@ object CreateResourceBloc {
                 }
             }
         }
-        val otherApksAddToResources = arrayOf(
-            *paths.toTypedArray(),
-            *hostSharedLibraryFiles
-        )
+        val otherApksAddToResources = if (hostSharedLibraryFiles == null) {
+            arrayOf(*paths.toTypedArray())
+        } else {
+            arrayOf(
+                *paths.toTypedArray(),
+                *hostSharedLibraryFiles
+            )
+        }
         applicationInfo.sharedLibraryFiles = otherApksAddToResources
     }
 }
