@@ -150,12 +150,25 @@ object CreateResourceBloc {
 
         // hostSharedLibraryFiles中可能有webview通过私有api注入的webview.apk
         val hostSharedLibraryFiles = hostApplicationInfo.sharedLibraryFiles
+        val paths = arrayListOf<String>()
+        val dependsOn = loadParameters.dependsOn
+        if (dependsOn != null && dependsOn.isNotEmpty()) {
+            dependsOn.forEach {
+                pluginPartsMap[it]?.apply {
+                    paths.add(pluginPackageManager.archiveFilePath)
+                }
+            }
+        }
         val otherApksAddToResources =
             if (hostSharedLibraryFiles == null)
-                arrayOf(pluginApkPath)
+                arrayOf(
+                    *paths.toTypedArray(),
+                    pluginApkPath
+                )
             else
                 arrayOf(
                     *hostSharedLibraryFiles,
+                    *paths.toTypedArray(),
                     pluginApkPath
                 )
 
@@ -174,11 +187,21 @@ object CreateResourceBloc {
     ) {
         applicationInfo.publicSourceDir = pluginApkPath
         applicationInfo.sourceDir = pluginApkPath
+        val hostSharedLibraryFiles = hostApplicationInfo.sharedLibraryFiles
+        val paths = arrayListOf<String>()
         val dependsOn = loadParameters.dependsOn
         if (dependsOn != null && dependsOn.isNotEmpty()) {
-            val path = arrayOf(String)
+            dependsOn.forEach {
+                pluginPartsMap[it]?.apply {
+                    paths.add(pluginPackageManager.archiveFilePath)
+                }
+            }
         }
-        applicationInfo.sharedLibraryFiles = hostApplicationInfo.sharedLibraryFiles
+        val otherApksAddToResources = arrayOf(
+            *paths.toTypedArray(),
+            *hostSharedLibraryFiles
+        )
+        applicationInfo.sharedLibraryFiles = otherApksAddToResources
     }
 }
 
