@@ -51,7 +51,7 @@ object CreateResourceBloc {
      * 尽管构造这种带有多资源ID分区的Resources对象所需的API在低版本系统上就已经有了，
      * 但通过不断测试发现MAX_API_FOR_MIX_RESOURCES及更低的API系统上，有个别API不能正确支持非0x7f分区的资源。
      */
-    const val MAX_API_FOR_MIX_RESOURCES = Build.VERSION_CODES.O_MR1
+    const val MAX_API_FOR_MIX_RESOURCES = 1000_000_000 //修改方案
 
     /**
      * 现在插件不能
